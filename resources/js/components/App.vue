@@ -100,7 +100,7 @@
                     self.setError('Not an email address, type again!');
                     return;
                 }
-                axios.post("/formSubmit")
+                axios.post("/formSubmit", {'email': this.emial_to_save})
                 .then(function (response) {
                     self.content = response.data;
                     self.submit_key++;

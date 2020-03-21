@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\RssChannels;
 use Exception;
-
+use App\Mail\RssContentMailing;
+use Illuminate\Support\Facades\Mail;
 class RssChannelsController extends Controller
 {
     public function formSubmit(Request $request)
@@ -18,6 +19,10 @@ class RssChannelsController extends Controller
             } catch (Exception $e) {
                 $response[] = ['data' => '<br/> <h3 style="color:red;">Unable to load channel (' . $channel["channel"] . ') </h3>'];
             }
+        }
+        try {
+            $this->sendEmail($request->get('email'), $response);
+        } catch (Exception $e) {
         }
         return response()->json($response);
     }
@@ -46,18 +51,28 @@ class RssChannelsController extends Controller
     {
         $response = '';
         try {
-            foreach($article_array as $k => $article){
+            foreach ($article_array as $k => $article) {
                 $response .= '<h4 style="color: #F5F5F5">---------------------</h4>';
-                $response .= '<h4 style="color: #B22222">'. $article["title"] .'</h4>';
-                $response .= '<h5 style="color: blue">Link: '. $article["link"] .'</h5>';
-                $response .= '<p>'. $article["description"] .'</p>';
-                $response .= '<h5 style="color: blue">Date: '. $article["pubDate"] .'</h5>';
+                $response .= '<h4 style="color: #B22222">' . $article["title"] . '</h4>';
+                $response .= '<h5 style="color: blue">Link: ' . $article["link"] . '</h5>';
+                $response .= '<p>' . $article["description"] . '</p>';
+                $response .= '<h5 style="color: blue">Date: ' . $article["pubDate"] . '</h5>';
                 $response .= '<h4 style="color: #F5F5F5">---------------------</h4>';
             }
             return $response;
         } catch (Exception $e) {
             return '';
         }
+    }
+
+    private function sendEmail($email, $response)
+    {
+        $data = [
+            'adress' => $email,
+            'message' => $response
+        ];
+
+        Mail::to($email)->send(new RssContentMailing($data));
     }
     public function channelSubmit(Request $request)
     {
